@@ -2,6 +2,8 @@ insert into auth.users (
   login,
   password_hash,
   role,
+  is_approved,
+  approved_at,
   email,
   telegram_username
 )
@@ -10,6 +12,8 @@ values
     'admin',
     'scrypt:b85a455cf853a4fd04547ef7273f449a:2fbdae4c4d27789bf0eb7699d53d3774db5f7e0dcc7632751299ca2d90f4dc9505b0769c15bc8fca96183b6e5d27b9ac435a61dd6a075df79234884c95a30d01',
     'admin',
+    true,
+    now(),
     'admin@example.com',
     'hookah_admin'
   ),
@@ -17,6 +21,8 @@ values
     'master',
     'scrypt:b816a0b6e18deb9e9a1336dd7efa041c:afbc136b27022294b6fda050bf2c5176b25970d5e1fbc811d71d8163ad2a72054c6d23f70d1b661a0eb53381cb17cc2d1bdaf7fe91049acb70f2eee36ed9464a',
     'hookah_master',
+    true,
+    now(),
     'master@example.com',
     'hookah_master'
   ),
@@ -24,6 +30,8 @@ values
     'client',
     'scrypt:8f514fd82fa8efdc82d2d00eb0ae4973:57eb5fe128828b6dc9cc5669ea574a72cabb94da2f62b0364106359a549287636d2f04330e2d42c1439538207f274369b3f69f9ed367948d4c89c2bc0d2274ba',
     'client',
+    true,
+    now(),
     'client@example.com',
     'hookah_client'
   )
@@ -31,6 +39,8 @@ on conflict (login) do update
 set
   password_hash = excluded.password_hash,
   role = excluded.role,
+  is_approved = excluded.is_approved,
+  approved_at = excluded.approved_at,
   email = excluded.email,
   telegram_username = excluded.telegram_username;
 
@@ -160,3 +170,68 @@ join catalog.tobaccos tobacco
 on conflict (packing_id, tobacco_id) do nothing;
 
 commit;
+
+insert into sales.order_participants (
+  order_id,
+  client_user_id,
+  description,
+  table_approval_status,
+  table_approved_at,
+  table_approved_by_user_id
+)
+select
+  sales_order.id,
+  client_user.id,
+  'Хочу мягкий освежающий микс с ягодным акцентом.',
+  'approved',
+  now(),
+  admin_user.id
+from sales.orders sales_order
+join auth.users client_user on client_user.login = 'client'
+join auth.users admin_user on admin_user.login = 'admin'
+where sales_order.notes = 'Demo order for local environment'
+  and not exists (
+    select 1
+    from sales.order_participants participant
+    where participant.order_id = sales_order.id
+      and participant.client_user_id = client_user.id
+  );
+
+insert into sales.order_participant_tobaccos (
+  participant_id,
+  tobacco_id
+)
+select
+  participant.id,
+  tobacco.id
+from sales.order_participants participant
+join sales.orders sales_order on sales_order.id = participant.order_id
+join catalog.tobaccos tobacco on tobacco.code in ('supernova', 'kiwi-smoothie')
+where sales_order.notes = 'Demo order for local environment'
+  and participant.description = 'Хочу мягкий освежающий микс с ягодным акцентом.'
+on conflict (participant_id, tobacco_id) do nothing;
+
+insert into sales.order_timeline (
+  order_id,
+  event_type,
+  status,
+  actor_user_id,
+  note,
+  occurred_at
+)
+select
+  sales_order.id,
+  'created',
+  'new',
+  client_user.id,
+  'Клиент создал demo-заказ по столу.',
+  now()
+from sales.orders sales_order
+join auth.users client_user on client_user.login = 'client'
+where sales_order.notes = 'Demo order for local environment'
+  and not exists (
+    select 1
+    from sales.order_timeline timeline
+    where timeline.order_id = sales_order.id
+      and timeline.event_type = 'created'
+  );
