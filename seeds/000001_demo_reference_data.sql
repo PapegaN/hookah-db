@@ -14,13 +14,55 @@ from (
 join catalog.brands brand on brand.code = source.brand_code
 on conflict (brand_id, code) do nothing;
 
-insert into catalog.tobaccos (line_id, code, name, flavor_profile)
-select product_line.id, source.code, source.name, source.flavor_profile
+insert into catalog.tobaccos (
+  line_id,
+  code,
+  name,
+  flavor_profile,
+  flavor_description,
+  estimated_strength_level,
+  brightness_level
+)
+select
+  product_line.id,
+  source.code,
+  source.name,
+  source.flavor_profile,
+  source.flavor_description,
+  source.estimated_strength_level,
+  source.brightness_level
 from (
   values
-    ('darkside', 'core', 'supernova', 'Supernova', array['mint', 'cooling']),
-    ('musthave', 'classic', 'kiwi-smoothie', 'Kiwi Smoothie', array['kiwi', 'cream'])
-) as source(brand_code, line_code, code, name, flavor_profile)
+    (
+      'darkside',
+      'core',
+      'supernova',
+      'Supernova',
+      array['mint', 'cooling'],
+      'Cooling mint profile with a long icy finish.',
+      5,
+      4
+    ),
+    (
+      'musthave',
+      'classic',
+      'kiwi-smoothie',
+      'Kiwi Smoothie',
+      array['kiwi', 'cream'],
+      'Sweet kiwi dessert profile with creamy softness.',
+      3,
+      3
+    )
+) as source(
+  brand_code,
+  line_code,
+  code,
+  name,
+  flavor_profile,
+  flavor_description,
+  estimated_strength_level,
+  brightness_level
+)
 join catalog.product_lines product_line on product_line.code = source.line_code
 join catalog.brands brand on brand.id = product_line.brand_id and brand.code = source.brand_code
 on conflict (line_id, code) do nothing;
@@ -52,9 +94,9 @@ join catalog.brands brand on brand.id = product_line.brand_id and brand.code = s
 on conflict (batch_code) do nothing;
 
 insert into sales.orders (service_type, table_label, total_amount, notes)
-select 'hall', 'Table 7', 1250.00, 'Демо-заказ для локальной среды'
+select 'hall', 'Table 7', 1250.00, 'Demo order for local environment'
 where not exists (
   select 1
   from sales.orders
-  where notes = 'Демо-заказ для локальной среды'
+  where notes = 'Demo order for local environment'
 );
