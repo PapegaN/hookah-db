@@ -1,16 +1,38 @@
 insert into auth.users (
   login,
   password_hash,
+  role,
   email,
   telegram_username
 )
-values (
-  'demo.admin',
-  '$argon2id$v=19$m=65536,t=3,p=4$demo-salt$demo-password-hash-placeholder',
-  'admin@example.com',
-  'demo_admin'
-)
-on conflict (login) do nothing;
+values
+  (
+    'admin',
+    'scrypt:b85a455cf853a4fd04547ef7273f449a:2fbdae4c4d27789bf0eb7699d53d3774db5f7e0dcc7632751299ca2d90f4dc9505b0769c15bc8fca96183b6e5d27b9ac435a61dd6a075df79234884c95a30d01',
+    'admin',
+    'admin@example.com',
+    'hookah_admin'
+  ),
+  (
+    'master',
+    'scrypt:b816a0b6e18deb9e9a1336dd7efa041c:afbc136b27022294b6fda050bf2c5176b25970d5e1fbc811d71d8163ad2a72054c6d23f70d1b661a0eb53381cb17cc2d1bdaf7fe91049acb70f2eee36ed9464a',
+    'hookah_master',
+    'master@example.com',
+    'hookah_master'
+  ),
+  (
+    'client',
+    'scrypt:8f514fd82fa8efdc82d2d00eb0ae4973:57eb5fe128828b6dc9cc5669ea574a72cabb94da2f62b0364106359a549287636d2f04330e2d42c1439538207f274369b3f69f9ed367948d4c89c2bc0d2274ba',
+    'client',
+    'client@example.com',
+    'hookah_client'
+  )
+on conflict (login) do update
+set
+  password_hash = excluded.password_hash,
+  role = excluded.role,
+  email = excluded.email,
+  telegram_username = excluded.telegram_username;
 
 insert into equipment.manufacturers (code, name)
 values
@@ -111,7 +133,7 @@ join equipment.charcoals charcoal
 join equipment.manufacturers charcoal_manufacturer
   on charcoal_manufacturer.id = charcoal.manufacturer_id
   and charcoal_manufacturer.code = 'cocoloco'
-where user_account.login = 'demo.admin'
+where user_account.login = 'admin'
   and not exists (
     select 1
     from recipes.packings packing
