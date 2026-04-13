@@ -18,11 +18,24 @@
 ## Как запускать локально
 
 ```bash
-copy .env.example .env
+cp .env.example .env
 docker compose up -d
 ```
 
 После старта контейнера миграции и сиды можно накатывать вручную через `psql` или через отдельный migration runner, когда мы его добавим.
+
+## Docker
+
+Собрать и запустить только PostgreSQL-контейнер этого репозитория:
+
+```bash
+docker build -t hookah-db .
+docker run --rm -p 5432:5432 --env-file .env hookah-db
+```
+
+При первом старте контейнер сам применит SQL-файлы из `migrations` и `seeds`.
+
+Для совместного запуска с frontend и backend используйте корневой `compose.yaml` в главном репозитории.
 
 ## Ближайшие шаги
 
