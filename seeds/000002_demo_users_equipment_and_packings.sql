@@ -86,6 +86,8 @@ from equipment.manufacturers manufacturer
 where manufacturer.code = 'cocoloco'
 on conflict (manufacturer_id, name, size_label) do nothing;
 
+begin;
+
 insert into recipes.packings (
   author_user_id,
   bowl_id,
@@ -156,3 +158,5 @@ join recipes.packings packing
 join catalog.tobaccos tobacco
   on tobacco.code = source.tobacco_code
 on conflict (packing_id, tobacco_id) do nothing;
+
+commit;
