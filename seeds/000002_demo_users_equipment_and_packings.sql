@@ -1,4 +1,4 @@
-insert into auth.users (
+﻿insert into auth.users (
   login,
   password_hash,
   role,
@@ -51,6 +51,16 @@ values
   ('kaloud', 'Kaloud'),
   ('cocoloco', 'CocoLoco')
 on conflict (code) do nothing;
+
+insert into catalog.tobacco_tags (code, name, is_active)
+values
+  ('minty', 'РњСЏС‚РЅС‹Р№', true),
+  ('berry', 'РЇРіРѕРґРЅС‹Р№', true),
+  ('fruit', 'Р¤СЂСѓРєС‚РѕРІС‹Р№', true)
+on conflict (code) do update
+set
+  name = excluded.name,
+  is_active = excluded.is_active;
 
 insert into equipment.bowls (
   manufacturer_id,
@@ -180,10 +190,27 @@ on conflict (packing_id, tobacco_id) do nothing;
 
 commit;
 
+insert into catalog.tobacco_tag_links (tobacco_id, tag_id)
+select tobacco.id, tag.id
+from (
+  values
+    ('supernova', 'minty'),
+    ('supernova', 'berry'),
+    ('kiwi-smoothie', 'fruit')
+) as source(tobacco_code, tag_code)
+join catalog.tobaccos tobacco
+  on tobacco.code = source.tobacco_code
+join catalog.tobacco_tags tag
+  on tag.code = source.tag_code
+on conflict (tobacco_id, tag_id) do nothing;
+
 insert into sales.order_participants (
   order_id,
   client_user_id,
   description,
+  wants_cooling,
+  wants_mint,
+  wants_spicy,
   table_approval_status,
   table_approved_at,
   table_approved_by_user_id
@@ -191,7 +218,7 @@ insert into sales.order_participants (
 select
   sales_order.id,
   client_user.id,
-  'Хочу мягкий освежающий микс с ягодным акцентом.',
+  'РҐРѕС‡Сѓ РјСЏРіРєРёР№ РѕСЃРІРµР¶Р°СЋС‰РёР№ РјРёРєСЃ СЃ СЏРіРѕРґРЅС‹Рј Р°РєС†РµРЅС‚РѕРј.',
   'approved',
   now(),
   admin_user.id
@@ -225,7 +252,7 @@ join (
   on true
 join catalog.tobaccos tobacco on tobacco.code = source.tobacco_code
 where sales_order.notes = 'Demo order for local environment'
-  and participant.description = 'Хочу мягкий освежающий микс с ягодным акцентом.'
+  and participant.description = 'РҐРѕС‡Сѓ РјСЏРіРєРёР№ РѕСЃРІРµР¶Р°СЋС‰РёР№ РјРёРєСЃ СЃ СЏРіРѕРґРЅС‹Рј Р°РєС†РµРЅС‚РѕРј.'
 on conflict (participant_id, tobacco_id) do nothing;
 
 insert into sales.order_timeline (
@@ -241,7 +268,7 @@ select
   'created',
   'new',
   client_user.id,
-  'Клиент создал demo-заказ по столу.',
+  'РљР»РёРµРЅС‚ СЃРѕР·РґР°Р» demo-Р·Р°РєР°Р· РїРѕ СЃС‚РѕР»Сѓ.',
   now()
 from sales.orders sales_order
 join auth.users client_user on client_user.login = 'client'
@@ -252,3 +279,4 @@ where sales_order.notes = 'Demo order for local environment'
     where timeline.order_id = sales_order.id
       and timeline.event_type = 'created'
   );
+
