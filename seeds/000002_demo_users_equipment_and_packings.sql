@@ -96,6 +96,15 @@ from equipment.manufacturers manufacturer
 where manufacturer.code = 'cocoloco'
 on conflict (manufacturer_id, name, size_label) do nothing;
 
+insert into equipment.electric_heads (
+  manufacturer_id,
+  name
+)
+select manufacturer.id, 'Hookah Pro'
+from equipment.manufacturers manufacturer
+where manufacturer.code = 'alpha-hookah'
+on conflict (manufacturer_id, name) do nothing;
+
 begin;
 
 insert into recipes.packings (
@@ -199,14 +208,22 @@ where sales_order.notes = 'Demo order for local environment'
 
 insert into sales.order_participant_tobaccos (
   participant_id,
-  tobacco_id
+  tobacco_id,
+  percentage
 )
 select
   participant.id,
-  tobacco.id
+  tobacco.id,
+  source.percentage
 from sales.order_participants participant
 join sales.orders sales_order on sales_order.id = participant.order_id
-join catalog.tobaccos tobacco on tobacco.code in ('supernova', 'kiwi-smoothie')
+join (
+  values
+    ('supernova', 70.00),
+    ('kiwi-smoothie', 30.00)
+) as source(tobacco_code, percentage)
+  on true
+join catalog.tobaccos tobacco on tobacco.code = source.tobacco_code
 where sales_order.notes = 'Demo order for local environment'
   and participant.description = 'Хочу мягкий освежающий микс с ягодным акцентом.'
 on conflict (participant_id, tobacco_id) do nothing;
