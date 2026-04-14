@@ -19,6 +19,7 @@ insert into catalog.tobaccos (
   code,
   name,
   flavor_profile,
+  marking_code,
   flavor_description,
   estimated_strength_level,
   brightness_level
@@ -28,6 +29,7 @@ select
   source.code,
   source.name,
   source.flavor_profile,
+  source.marking_code,
   source.flavor_description,
   source.estimated_strength_level,
   source.brightness_level
@@ -39,6 +41,7 @@ from (
       'supernova',
       'Supernova',
       array['mint', 'cooling'],
+      '0104607001774080215DSUPERNOVA91ABC12345',
       'Cooling mint profile with a long icy finish.',
       5,
       4
@@ -49,6 +52,7 @@ from (
       'kiwi-smoothie',
       'Kiwi Smoothie',
       array['kiwi', 'cream'],
+      '0104607001774080215MHKIWI000291XYZ67890',
       'Sweet kiwi dessert profile with creamy softness.',
       3,
       3
@@ -59,6 +63,7 @@ from (
   code,
   name,
   flavor_profile,
+  marking_code,
   flavor_description,
   estimated_strength_level,
   brightness_level
