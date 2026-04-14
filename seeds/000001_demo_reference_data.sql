@@ -52,7 +52,7 @@ from (
       'kiwi-smoothie',
       'Kiwi Smoothie',
       array['kiwi', 'cream'],
-      '0104607001774080215MHKIWI000291XYZ67890',
+      '0104607001774097215MHKIWI000291XYZ67890',
       'Sweet kiwi dessert profile with creamy softness.',
       3,
       3
