@@ -219,6 +219,9 @@ select
   sales_order.id,
   client_user.id,
   'РҐРѕС‡Сѓ РјСЏРіРєРёР№ РѕСЃРІРµР¶Р°СЋС‰РёР№ РјРёРєСЃ СЃ СЏРіРѕРґРЅС‹Рј Р°РєС†РµРЅС‚РѕРј.',
+  true,
+  false,
+  false,
   'approved',
   now(),
   admin_user.id
